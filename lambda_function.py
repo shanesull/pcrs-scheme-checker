@@ -24,22 +24,31 @@ def lambda_handler(event, context):
     headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36'}
     r = client.post(url, data=data, headers=dict(Referer=url))
     soup2 = BeautifulSoup(r.text, 'html.parser')
-    span = soup2.select('.lead')
-    elligibilty =  span[1].getText().strip('\n').lower()
-    scheme = soup2.find(text='Scheme Type:').parent.findNext('div').getText().strip('\n')
-    dob = soup2.find(text='Date of Birth:').parent.findNext('div').getText().strip('\n')
-    start_date = soup2.find(text='Eligibility Start Date:').parent.findNext('div').getText().strip('\n')
-    end_date = soup2.find(text='Eligibility End Date:').parent.findNext('div').getText().strip('\n')
-    scheme_ref = soup2.find(text='Scheme Id:').parent.findNext('div').getText().strip('\n')
-
-    print (elligibilty,scheme, dob,start_date,end_date,scheme_ref)
-    #return elligibilty.strip('\n')
+    card_headers = soup2.find_all("div", {"class":"card-header"})
+    is_valid = card_headers[1].text.strip()
+    print('Card Header: ' + is_valid)
+    if is_valid != 'Patient Not Found' and scheme_id:
+        print ('PNF')
+        span = soup2.select('.lead')
+        elligibilty =  span[1].getText().strip('\n').lower()
+        scheme = soup2.find(text='Scheme Type:').parent.findNext('div').getText().strip('\n')
+        dob = soup2.find(text='Date of Birth:').parent.findNext('div').getText().strip('\n')
+        start_date = soup2.find(text='Eligibility Start Date:').parent.findNext('div').getText().strip('\n')
+        end_date = soup2.find(text='Eligibility End Date:').parent.findNext('div').getText().strip('\n')
+        scheme_ref = soup2.find(text='Scheme Id:').parent.findNext('div').getText().strip('\n')
     
-    pcrs_response = dict(
-        status=elligibilty,
-        scheme=scheme,
-        elligibilty_start_date=start_date,
-        elligibilty_end_date=end_date,
-        date_of_birth=dob
-    )
+        print (elligibilty,scheme, dob,start_date,end_date,scheme_ref)
+        #return elligibilty.strip('\n')
+        
+        pcrs_response = dict(
+            status=elligibilty,
+            scheme=scheme,
+            elligibilty_start_date=start_date,
+            elligibilty_end_date=end_date,
+            date_of_birth=dob
+        )
+    else:
+        pcrs_response = dict(
+            status='invalid'
+        )
     return pcrs_response
